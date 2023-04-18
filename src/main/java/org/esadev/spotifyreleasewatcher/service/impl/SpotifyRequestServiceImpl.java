@@ -57,7 +57,7 @@ public class SpotifyRequestServiceImpl implements SpotifyRequestService {
             Paging<AlbumSimplified> simplifiedPaging;
             GetArtistsAlbumsRequest.Builder builder = buildArtistAlbumsRequest(artistId, trackArtistsDto, spotifyApi);
             simplifiedPaging = builder.build().execute();
-            LocalDate startDate = LocalDate.now().minusDays(trackArtistsDto.getLastDays()).plusDays(1);
+            LocalDate startDate = LocalDate.now().minusDays(trackArtistsDto.getLastDays());
             return Arrays.stream(simplifiedPaging.getItems())
                     .filter(albumSimplified -> albumSimplified.getReleaseDatePrecision().equals(ReleaseDatePrecision.DAY))
                     .filter(albumSimplified -> LocalDate.parse(albumSimplified.getReleaseDate()).isAfter(startDate))

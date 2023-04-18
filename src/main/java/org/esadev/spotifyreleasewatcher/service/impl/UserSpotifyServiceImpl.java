@@ -1,23 +1,21 @@
 package org.esadev.spotifyreleasewatcher.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.esadev.spotifyreleasewatcher.dto.ArtistRelease;
 import org.esadev.spotifyreleasewatcher.dto.FollowedArtistsResponse;
+import org.esadev.spotifyreleasewatcher.dto.NewAlbum;
 import org.esadev.spotifyreleasewatcher.dto.TrackArtistsDto;
 import org.esadev.spotifyreleasewatcher.service.SpotifyRequestService;
 import org.esadev.spotifyreleasewatcher.service.UserSpotifyService;
 import org.springframework.stereotype.Service;
-import se.michaelthelin.spotify.enums.AlbumType;
-import se.michaelthelin.spotify.model_objects.specification.AlbumSimplified;
 import se.michaelthelin.spotify.model_objects.specification.Artist;
 import se.michaelthelin.spotify.model_objects.specification.PagingCursorbased;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static se.michaelthelin.spotify.enums.ModelObjectType.ARTIST;
 
@@ -54,20 +52,32 @@ public class UserSpotifyServiceImpl implements UserSpotifyService {
     }
 
     @Override
-    public Map<Artist, Map<AlbumType, List<AlbumSimplified>>> trackFollowedArtists(TrackArtistsDto trackArtistsDto) {
+    public List<ArtistRelease> trackFollowedArtists(TrackArtistsDto trackArtistsDto) {
 
         Set<Artist> followedArtists = getAllFollowedArtists("", DEFAULT_LIMIT_ARTIST);
 
         List<Artist> list = followedArtists.stream().toList();
 
-        Map<Artist, Map<AlbumType, List<AlbumSimplified>>> result = new HashMap<>();
-
+        List<ArtistRelease> artistAlbums = new ArrayList<>();
         for (Artist artist : list) {
-            Map<AlbumType, List<AlbumSimplified>> artistAlbums = spotifyRequestService.getArtistAlbums(artist.getId(), trackArtistsDto).stream().collect(Collectors.groupingBy(AlbumSimplified::getAlbumType));
-            if (!artistAlbums.isEmpty()) {
-                result.put(artist, artistAlbums);
+            List<NewAlbum> newAlbums = spotifyRequestService.getArtistAlbums(artist.getId(), trackArtistsDto).stream().map(albumSimplified -> {
+                NewAlbum newAlbum = new NewAlbum();
+                newAlbum.setAlbumType(albumSimplified.getAlbumType());
+                newAlbum.setAlbumGroup(albumSimplified.getAlbumGroup());
+                newAlbum.setName(albumSimplified.getName());
+                newAlbum.setId(albumSimplified.getId());
+                return newAlbum;
+            }).toList();
+
+            if (!newAlbums.isEmpty()) {
+                ArtistRelease artistRelease = new ArtistRelease();
+                artistRelease.setType(artist.getType());
+                artistRelease.setAlbums(newAlbums);
+                artistRelease.setName(artist.getName());
+                artistAlbums.add(artistRelease);
             }
         }
-        return result;
+        return artistAlbums;
     }
 }
+
