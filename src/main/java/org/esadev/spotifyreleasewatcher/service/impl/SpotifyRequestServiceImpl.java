@@ -1,7 +1,6 @@
 package org.esadev.spotifyreleasewatcher.service.impl;
 
 import io.micrometer.common.util.StringUtils;
-import lombok.SneakyThrows;
 import org.apache.hc.core5.http.ParseException;
 import org.esadev.spotifyreleasewatcher.dto.AlbumType;
 import org.esadev.spotifyreleasewatcher.dto.TrackArtistsDto;
@@ -17,7 +16,6 @@ import se.michaelthelin.spotify.model_objects.AbstractModelObject;
 import se.michaelthelin.spotify.model_objects.specification.AlbumSimplified;
 import se.michaelthelin.spotify.model_objects.specification.Paging;
 import se.michaelthelin.spotify.model_objects.specification.PagingCursorbased;
-import se.michaelthelin.spotify.model_objects.specification.PlaylistSimplified;
 import se.michaelthelin.spotify.requests.data.artists.GetArtistsAlbumsRequest;
 import se.michaelthelin.spotify.requests.data.follow.GetUsersFollowedArtistsRequest;
 
@@ -26,7 +24,6 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 import static java.util.Optional.ofNullable;
 
@@ -69,30 +66,6 @@ public class SpotifyRequestServiceImpl implements SpotifyRequestService {
             throw new SpotifyRequestException(RETRIEVING_ARTISTS_ALBUMS_EXCEPTION_MESSAGE, e);
         }
 
-    }
-
-    @Override
-    @SneakyThrows
-    public Optional<PlaylistSimplified> getUserPlaylist(String playlistName) {
-        SpotifyApi spotifyApi = spotifyRequest();
-        while (true) {
-            Paging<PlaylistSimplified> paging = spotifyApi.getListOfCurrentUsersPlaylists().build().execute();
-            Optional<PlaylistSimplified> matchedPlaylist = Arrays.stream(paging.getItems())
-                    .filter(playlist -> playlist.getName().equals(playlistName))
-                    .findAny();
-            if (matchedPlaylist.isPresent()) {
-                return matchedPlaylist;
-            }
-            if (paging.getNext() == null) {
-                break;
-            }
-        }
-        return Optional.empty();
-    }
-
-    @Override
-    public Optional<PlaylistSimplified> createUserPlayList(String playlistName) {
-        return Optional.empty();
     }
 
 
